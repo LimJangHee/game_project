@@ -3,6 +3,19 @@ const c = canvas.getContext('2d')
 
 const scoreEl = document.querySelector('#score')
 
+const gameOver = document.getElementById("game-over")
+const Win = document.getElementById("win")
+
+const restartButton = document.getElementById("restart-button")
+
+const chompSound = new Audio('pacman_chomp.wav')
+
+const easyButton = document.querySelector('#easy-button');
+const mediumButton = document.querySelector('#medium-button');
+const hardButton = document.querySelector('#hard-button');
+
+const difficultyLevelElement = document.getElementById('difficulty-level');
+
 // 브라우저 윈도우 사이즈 적용
 canvas.width = window.innerWidth
 canvas.height = window.innerHeight
@@ -29,7 +42,7 @@ class Player {
         
         this.position = position
         this.velocity = velocity
-        this.radius = 15
+        this.radius = 13
         // 입 벌리는 값
         this.radians = 0.75
         // 입 열고 닫는 속도값 조정
@@ -135,40 +148,101 @@ class PowerUp {
 }
 
 // 코인 저장용 배열
-const pellets = []
+let pellets = []
 
 
 // 경계선 추가할 배열
 const boundaries = []
 
 // 파워업 코인 저장용 배열
-const powerUps = []
+let powerUps = []
 
-// ghost 초기 정보
-const ghosts = [
+// ghost 초기 정보(디폴트로 ghost 1마리만)
+let ghosts = [
     new Ghost({
         position: {
             x: Boundary.width * 6 + Boundary.width / 2,
             y: Boundary.height + Boundary.height / 2
         },
         velocity: {
-            x: 2,
+            x: 3,
             y: 0
         }
     }),
-    new Ghost({
+    
+]
+
+easyButton.addEventListener('click', () => {
+    setDifficulty('Easy');
+  });
+  
+mediumButton.addEventListener('click', () => {
+    setDifficulty('Medium');
+  });
+  
+hardButton.addEventListener('click', () => {
+    setDifficulty('Hard');
+  });
+  
+
+function setDifficulty(difficulty) {
+    
+    difficultyLevelElement.textContent = difficulty;
+
+    if (difficulty === "Easy") {
+    // ghosts.push(new Ghost({
+    //     position: {
+    //     x: Boundary.width * 6 + Boundary.width / 2,
+    //     y: Boundary.height + Boundary.height / 2
+    //     },
+    //     velocity: {
+    //     x: 3,
+    //     y: 0
+    //     }
+    // }));
+    } else if (difficulty === "Medium") {
+    ghosts.push(
+        
+        new Ghost({
         position: {
             x: Boundary.width * 6 + Boundary.width / 2,
             y: Boundary.height * 3 + Boundary.height / 2
         },
         velocity: {
-            x: 2,
+            x: 3,
             y: 0
         },
         color: 'pink'
-    }),
-]
-
+        })
+    );
+    } else if (difficulty === "Hard") {
+    ghosts.push(
+        
+        new Ghost({
+        position: {
+            x: Boundary.width * 6 + Boundary.width / 2,
+            y: Boundary.height * 3 + Boundary.height / 2
+        },
+        velocity: {
+            x: 3,
+            y: 0
+        },
+        color: 'pink'
+        }),
+        new Ghost({
+        position: {
+            x: Boundary.width * 1 + Boundary.width / 2,
+            y: Boundary.height * 9 + Boundary.height / 2
+        },
+        velocity: {
+            x: 3,
+            y: 0
+        },
+        color: 'purple'
+        })
+    );
+    }
+}
 
 // 플레이어 선언, 위치정보
 const player = new Player({
@@ -324,7 +398,7 @@ function animate() {
 
     // 플레이어와 Ghost 충돌 감지
     for (let i = ghosts.length - 1; 0 <= i; i--) {
-      const ghost = ghosts[i]
+      let ghost = ghosts[i]
         // 플레이어와 Ghost 충돌했을시
         if (
           Math.hypot(
@@ -336,17 +410,23 @@ function animate() {
 
             if (ghost.scared) {
                 ghosts.splice(i, 1)
+                score += 1000
+                scoreEl.innerHTML = score
             } else {
             cancelAnimationFrame(animationID)
             // 패배 조건 확인
-            console.log('game over')
+            // console.log('game over')
+            gameOver.style.display = "block"
+            restartButton.style.display = "block"
             }
         }
     }
     // 승리 조건
     if (pellets.length === 0) {
-        console.log('you win')
+        // console.log('you win')
         cancelAnimationFrame(animationID)
+        Win.style.display = "block"
+        restartButton.style.display = "block"
     }    
 
     // 파워업 코인 생성
@@ -372,6 +452,30 @@ function animate() {
             })
         }
     })
+
+    // for (let i = powerUps.length - 1; i >= 0; i--) {
+    //     const PowerUp = powerUps[i];
+      
+    //     PowerUp.draw();
+      
+    //     // 플레이어와 충돌시 조건
+    //     if (
+    //       Math.hypot(
+    //         PowerUp.position.x - player.position.x,
+    //         PowerUp.position.y - player.position.y
+    //       ) < PowerUp.radius + player.radius
+    //     ) {
+    //       powerUps.splice(i, 1);
+      
+    //       ghosts.forEach((ghost) => {
+    //         ghost.scared = true;
+      
+    //         setTimeout(() => {
+    //           ghost.scared = false;
+    //         }, 5000);
+    //       });
+    //     }
+    //   }
     
 
     // 코인 생성
@@ -408,7 +512,7 @@ function animate() {
                     circle: {
                         ...ghost,
                         velocity: {
-                            x: 2,
+                            x: 3,
                             y: 0
                         }
                     },
@@ -424,7 +528,7 @@ function animate() {
                     circle: {
                         ...ghost,
                         velocity: {
-                            x: -2,
+                            x: -3,
                             y: 0
                         }
                     },
@@ -441,7 +545,7 @@ function animate() {
                         ...ghost,
                         velocity: {
                             x: 0,
-                            y: -2
+                            y: -3
                         }
                     },
                     rectangle: boundary
@@ -457,7 +561,7 @@ function animate() {
                         ...ghost,
                         velocity: {
                             x: 0,
-                            y: 2
+                            y: 3
                         }
                     },
                     rectangle: boundary
@@ -467,7 +571,7 @@ function animate() {
             }
         })
         // 충돌 확인용
-        console.log(collisions)
+        // console.log(collisions)
 
 
         if (collisions.length > ghost.prevCollisions.length)
@@ -487,8 +591,8 @@ function animate() {
             ghost.prevCollisions.push('down')
 
             // 충돌 확인
-            console.log(collisions)
-            console.log(ghost.prevCollisions)
+            // console.log(collisions)
+            // console.log(ghost.prevCollisions)
 
             // 현재 충돌 상태가 아닌 객체들만 반환하여 경로에 추가
             const pathways = ghost.prevCollisions.filter(collision => {
@@ -496,32 +600,32 @@ function animate() {
             })
 
             // 진행 가능 경로 확인
-            console.log({ pathways })
+            // console.log({ pathways })
 
             // 랜덤 방향으로 진행
             const direction = pathways[Math.floor(Math.random() * pathways.length)]
 
             // 각 방향 진행에 대한 속도 조건
-            console.log({ direction })
+            // console.log({ direction })
             switch (direction) {
                 case 'down':
-                    ghost.velocity.y = 2
+                    ghost.velocity.y = 3
                     ghost.velocity.x = 0
                     break
 
                 case 'up':
-                    ghost.velocity.y = -2
+                    ghost.velocity.y = -3
                     ghost.velocity.x = 0
                     break    
                 
                 case 'right':
                     ghost.velocity.y = 0
-                    ghost.velocity.x = 2
+                    ghost.velocity.x = 3
                     break
 
                 case 'left':
                     ghost.velocity.y = 0
-                    ghost.velocity.x = -2
+                    ghost.velocity.x = -3
                     break
             }
 
@@ -546,14 +650,14 @@ function animate() {
                 // 팁!!! player객체를 복제하여 velocity속성을 추가한 다음 circle이라는 새로운 객체를 생성하는 스프레드 문법
                 circle: {...player, velocity: {
                     x: 0,
-                    y: -2
+                    y: -3
                 }},
                 rectangle: boundary
             })) {
                 player.velocity.y = 0
                 break
             } else {
-                player.velocity.y = -2
+                player.velocity.y = -3
             }
         }    
 
@@ -562,7 +666,7 @@ function animate() {
             const boundary = boundaries[i]  
               if ( circleCollideWithRectangle({
                   circle: {...player, velocity: {
-                      x: -2,
+                      x: -3,
                       y: 0
                   }},
                   rectangle: boundary
@@ -570,7 +674,7 @@ function animate() {
                   player.velocity.x = 0
                   break
               } else {
-                  player.velocity.x = -2
+                  player.velocity.x = -3
               }
           }    
     } else if (keys.s.pressed && lastKey === 's') {
@@ -579,14 +683,14 @@ function animate() {
               if ( circleCollideWithRectangle({
                   circle: {...player, velocity: {
                       x: 0,
-                      y: 2
+                      y: 3
                   }},
                   rectangle: boundary
               })) {
                   player.velocity.y = 0
                   break
               } else {
-                  player.velocity.y = 2
+                  player.velocity.y = 3
               }
           }    
     } else if (keys.d.pressed && lastKey === 'd') {
@@ -594,7 +698,7 @@ function animate() {
             const boundary = boundaries[i]  
               if ( circleCollideWithRectangle({
                   circle: {...player, velocity: {
-                      x: 2,
+                      x: 3,
                       y: 0
                   }},
                   rectangle: boundary
@@ -602,7 +706,7 @@ function animate() {
                   player.velocity.x = 0
                   break
               } else {
-                  player.velocity.x = 2
+                  player.velocity.x = 3
               }
           }    
     }
@@ -618,7 +722,9 @@ function animate() {
 }
 
 // 애니메이션 함수 호출하여 실행
-animate()
+setTimeout(function() {
+    animate();
+}, 4000);    
 
 
 
@@ -630,18 +736,22 @@ window.addEventListener('keydown', ({key}) => {
         case 'w':
             keys.w.pressed = true
             lastKey = 'w'
+            chompSound.play()
             break
         case 'a':
             keys.a.pressed = true
             lastKey = 'a'
+            chompSound.play()
             break 
         case 's':
             keys.s.pressed = true
             lastKey = 's'
+            chompSound.play()
             break
         case 'd':
             keys.d.pressed = true
             lastKey = 'd'
+            chompSound.play()
             break                   
 }
     // 확인용
@@ -675,3 +785,104 @@ window.addEventListener('keyup', ({key}) => {
     // console.log(keys.s.pressed)
     // console.log(keys.d.pressed)
 })
+
+// 코인 초기화 함수
+function resetPellets() {
+    pellets = []
+    map.forEach((row, i) => {
+      row.forEach((symbol, j) => {
+        if (symbol === '.') {
+          pellets.push(
+            new Pellet({
+              position: {
+                x: j * Boundary.width + Boundary.width / 2,
+                y: i * Boundary.height + Boundary.height / 2
+              }
+            })
+          )
+        }
+      })
+    })
+  }
+
+// 파워업 초기화 함수
+function resetPowerup() {
+powerUps = []
+map.forEach((row, i) => {
+    row.forEach((symbol, j) => {
+    if (symbol === 'p') {
+        pellets.push(
+        new PowerUp({
+            position: {
+            x: j * Boundary.width + Boundary.width / 2,
+            y: i * Boundary.height + Boundary.height / 2
+            }
+        })
+        )
+    }
+    })
+})
+
+}
+
+//restart 버튼 누르면 브라우저 초기화
+restartButton.addEventListener("click", function() {
+    location.reload();
+})
+
+// restart 버튼 누를시에 대한 이벤트(모든 게임 데이터 초기화 등)(미완성)
+// restartButton.addEventListener("click", function() {
+
+//     score = 0
+
+//     player.position = {
+//         x: Boundary.width + Boundary.width / 2,
+//         y: Boundary.height + Boundary.height / 2
+//     }
+//     player.velocity = {
+//         x: 0,
+//         y: 0
+//     }
+
+//     ghosts.forEach((ghost, index) => {
+//         let initialPosition;
+//         let initialVelocity = { x: 2, y: 0 };
+        
+//         // 초기 위치와 속도 값 설정
+//         if (index % 2 === 0) {
+//           initialPosition = {
+//             x: Boundary.width * (6 + index) + Boundary.width / 2,
+//             y: Boundary.height + Boundary.height / 2
+//           };
+//         } else {
+//           initialPosition = {
+//             x: Boundary.width * (6 + index) + Boundary.width / 2,
+//             y: Boundary.height * 3 + Boundary.height / 2
+//           };
+//         }
+        
+//         // Ghost 객체의 위치와 속도 값을 초기화합니다.
+//         ghost.position = initialPosition;
+//         ghost.velocity = initialVelocity;
+        
+//         // color가 초기값('red')과 다른 경우, 색상 값을 초기화합니다.
+//         if (ghost.color !== 'red') {
+//           ghost.color = 'pink';
+//         }
+//       })
+      
+
+//     resetPellets()
+//     resetPowerup()
+
+//     gameOver.style.display = "none"
+//     Win.style.display = "none"
+//     restartButton.style.display = "none"
+
+//     c.clearRect(0, 0, canvas.width, canvas.height)
+
+//     animationID = requestAnimationFrame(animate);
+
+// })
+
+
